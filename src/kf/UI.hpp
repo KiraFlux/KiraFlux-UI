@@ -416,7 +416,7 @@ public:
 
         void doRender(Render &render) const override {
             if constexpr (std::is_floating_point<T>::value) {
-                render.number(value, 2);
+                render.number(value, 3);
             } else {
                 render.number(value);
             }
