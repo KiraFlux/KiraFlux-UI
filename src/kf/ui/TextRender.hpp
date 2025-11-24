@@ -9,7 +9,7 @@
 namespace kf::ui {
 
 /// @brief Система отрисовки
-struct Render {
+struct TextRender {
 
     /// @brief Настройки рендера 
     struct Settings {

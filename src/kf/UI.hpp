@@ -10,7 +10,7 @@
 #include <kf/aliases.hpp>
 #include <kf/tools/meta/Singleton.hpp>
 
-#include "kf/ui/Render.hpp"
+#include "kf/ui/TextRender.hpp"
 
 namespace kf {
 
@@ -19,7 +19,7 @@ struct UI final : tools::Singleton<UI> {
     friend struct Singleton<UI>;
 
     // Временно, будет убрано после обобщения политики рендера
-    using Render = ui::Render;
+    using Render = ui::TextRender;
 
     /// @brief Входящее событие
     struct Event {
