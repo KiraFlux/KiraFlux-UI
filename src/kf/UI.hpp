@@ -353,16 +353,16 @@ public:
 
     public:
         explicit ComboBox(
-            Container items,
-            T &val
+            T &val,
+            Container items
         ) :
             items{std::move(items)},
             value{val} {}
 
         explicit ComboBox(
             Page &root,
-            Container items,
-            T &val
+            T &val,
+            Container items
         ) :
             items{std::move(items)},
             value{val} {
@@ -460,7 +460,7 @@ public:
         }
     };
 
-    /// @brief Спин-бокс - Виджет для изменения арифметического значения в указанном режиме
+/// @brief Спин-бокс - Виджет для изменения арифметического значения в указанном режиме
     template<typename T> struct SpinBox final : Widget {
         static_assert(std::is_arithmetic<T>::value, "T must be arithmetic");
 
@@ -480,7 +480,7 @@ public:
         };
 
     private:
-        /// @brief
+        /// @brief Флаг режима настройки шага
         bool is_step_setting_mode{false};
 
         /// @brief Режим изменения значения
@@ -515,7 +515,7 @@ public:
         }
 
         bool onClick() override {
-            is_step_setting_mode = not is_step_setting_mode;
+            is_step_setting_mode = !is_step_setting_mode;
             return true;
         }
 
@@ -529,48 +529,64 @@ public:
         }
 
         void doRender(Render &render) const override {
-            if (is_step_setting_mode) {
-                render.arrow();
-            }
-
             render.variableBegin();
 
-            if (std::is_floating_point<T>::value) {
-                render.number(static_cast<float>(value), 4);
+            if (is_step_setting_mode) {
+                render.arrow();
+                displayNumber(render, step);
             } else {
-                render.number(value);
+                displayNumber(render, value);
             }
 
             render.variableEnd();
         }
 
     private:
+        void displayNumber(Render &render, const T &number) const {
+            if constexpr (std::is_floating_point<T>::value) {
+                render.number(static_cast<float>(number), 4);
+            } else {
+                render.number(number);
+            }
+        }
+
+        /// @brief Изменить значение
         void changeValue(int direction) {
             if (mode == Mode::Geometric) {
-                calcGeometric(value, direction, step);
-                return;
-            }
-
-            value += direction * step;
-
-            if (mode == Mode::ArithmeticPositiveOnly and value < 0) {
-                value = 0;
-            }
-        }
-
-        void changeStep(int direction) {
-            constexpr T step_step{static_cast<T>(10.0f)};
-            calcGeometric(step, direction, step_step);
-        }
-
-        static void calcGeometric(T &value, int direction, T s) {
-            if (direction > 0) {
-                value *= s;
+                // Геометрическое изменение: умножаем/делим значение
+                if (direction > 0) {
+                    value *= step;
+                } else {
+                    value /= step;
+                }
             } else {
-                value /= s;
+                // Арифметическое изменение: прибавляем/вычитаем
+                value += direction * step;
+
+                // Проверка для режима только положительных значений
+                if (mode == Mode::ArithmeticPositiveOnly && value < 0) {
+                    value = 0;
+                }
+            }
+        }
+
+        /// @brief Изменить шаг
+        void changeStep(int direction) {
+            constexpr T step_multiplier{static_cast<T>(10)};
+
+            if (direction > 0) {
+                step *= step_multiplier;
+            } else {
+                step /= step_multiplier;
+
+                // Защита от слишком маленьких шагов
+                if constexpr (std::is_integral<T>::value) {
+                    if (step < 1) { step = 1; }
+                }
             }
         }
     };
+
 };
 
 }// namespace kf
