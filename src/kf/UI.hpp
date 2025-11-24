@@ -229,7 +229,9 @@ struct UI final : tools::Singleton<UI> {
         /// @brief Конструктор виджета с автоматическим добавлением на страницу
         /// @param root Страница, которая будет содержать данный виджет
         /// @details Вызывает <code>Page::addWidget</code>
-        explicit Widget(Page &root);
+        explicit Widget(Page &root) {
+            root.addWidget(*this);
+        }
 
         /// @brief Конструктор виджета по умолчанию, не добавляет себя на страницу
         explicit Widget() = default;
@@ -280,9 +282,15 @@ struct UI final : tools::Singleton<UI> {
                 Widget{target}, target{target} {}
 
             /// @brief Устанавливает активную страницу
-            bool onClick() override;
+            bool onClick() override {
+                UI::instance().bind(target);
+                return true;
+            }
 
-            void doRender(Render &render) const override;
+            void doRender(Render &render) const override {
+                render.arrow();
+                render.string(target.title);
+            }
         };
 
         /// @brief Виджеты данной страницы
@@ -316,13 +324,53 @@ struct UI final : tools::Singleton<UI> {
         /// @brief Отобразить страницу
         /// @param render Система отрисовки
         /// @param rows Кол-во строк
-        void render(Render &render);
+        void render(Render &render) {
+            render.string(title);
+            render.widgetEnd();
+
+            const auto rows = render.rows - 1;
+
+            const auto start = (totalWidgets() > rows) ? std::min(cursor, totalWidgets() - rows) : 0;
+            const auto end = std::min(start + rows, totalWidgets());
+
+            for (auto i = start; i < end; i += 1) {
+                widgets[i]->render(render, i == cursor);
+                render.widgetEnd();
+            }
+        }
 
         /// @brief Отреагировать на событие
         /// @param event Входящее событие
         /// @returns true - Требуется перерисовка
         /// @returns false - перерисовка не требуется
-        bool onEvent(Event event);
+        bool onEvent(Event event) {
+            switch (event) {
+                case Event::None: {
+                    return false;
+                }
+                case Event::Update: {
+                    return true;
+                }
+                case Event::ElementNext: {
+                    moveCursor(+1);
+                    return true;
+                }
+                case Event::ElementPrevious: {
+                    moveCursor(-1);
+                    return true;
+                }
+                case Event::Click: {
+                    return widgets[cursor]->onClick();
+                }
+                case Event::ChangeIncrement: {
+                    return widgets[cursor]->onChange(+1);
+                }
+                case Event::ChangeDecrement: {
+                    return widgets[cursor]->onChange(-1);
+                }
+            }
+            return false;
+        }
 
         /// @brief Общее кол-во виджетов
         [[nodiscard]] inline usize totalWidgets() const { return static_cast<int>(widgets.size()); }
