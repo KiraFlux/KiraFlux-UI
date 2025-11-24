@@ -124,7 +124,7 @@ struct UI final : tools::Singleton<UI> {
                 integer /= base;
             }
 
-            for (auto i = 0; i < digits_total; i += 1) {
+            for (auto i = digits_total - 1; i >= 0; i -= 1) {
                 written += write(digits_buffer[i]);
             }
 
