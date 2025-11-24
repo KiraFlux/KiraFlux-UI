@@ -11,14 +11,16 @@ namespace kf::ui {
 /// @brief Система отрисовки
 struct Render {
 
-    using RenderHandler = std::function<void(const kf::slice<const u8> &)>;
+    struct Settings {
+        using RenderHandler = std::function<void(const kf::slice<const u8> &)>;
+        RenderHandler render_handler{nullptr};
+    } settings{};
 
 private:
     std::array<u8, 128> buffer{};
     usize cursor{0};
 
 public:
-    RenderHandler render_handler{nullptr};
     u16 rows{8}, cols{21};
 
     /// @brief Подготовить буфер отрисовки
@@ -30,7 +32,7 @@ public:
     void finish() {
         buffer[cursor - 1] = '\0';
 
-        render_handler({
+        settings.render_handler({
             buffer.data(),
             cursor,
         });

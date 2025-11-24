@@ -18,6 +18,7 @@ namespace kf {
 struct UI final : tools::Singleton<UI> {
     friend struct Singleton<UI>;
 
+    // Временно, будет убрано после обобщения политики рендера
     using Render = ui::Render;
 
     /// @brief Входящее событие
@@ -115,7 +116,7 @@ public:
 
             /// @brief Устанавливает активную страницу
             bool onClick() override {
-                UI::instance().bind(target);
+                UI::instance().bindPage(target);
                 return true;
             }
 
@@ -218,33 +219,18 @@ private:
     /// @brief Активная страница
     Page *active_page{nullptr};
 
-    /// @brief Предыдущая страница
-    Page *previous_page{nullptr};
-
     /// @brief Система отображения
     Render render_system{};
 
 public:
+    /// @brief Получить экземпляр настроек системы рендера
+    Render::Settings &getRenderSettings() {
+        return render_system.settings;
+    }
+
     /// @brief Установить активную страницу
-    void bind(Page &page) {
-        previous_page = active_page;
+    void bindPage(Page &page) {
         active_page = &page;
-    }
-
-    /// @brief Вернуться на предыдущую страницу
-    void back() {
-        std::swap(previous_page, active_page);
-    }
-
-    /// @brief Рендеринг активной страницы
-    void render() {
-        if (nullptr == active_page) {
-            return;
-        }
-
-        render_system.prepare();
-        active_page->render(render_system);
-        render_system.finish();
     }
 
     /// @brief Добавить событие в очередь
@@ -252,18 +238,23 @@ public:
         events.push(event);
     }
 
-    /// @brief Прокрутка событий
-    /// @returns true - Необходима перерисовка
-    /// @returns false - Перерисовка не требуется
-    bool pollEvents() {
-        // mostly time active page is not null, so consider to null-check at last.
+    /// @brief Прокрутка входящих событий. Перерисовка при необходимости
+    void poll() {
+        // mostly time active page is not null, so null-check is after queue.
         if (events.empty() or nullptr == active_page) {
-            return false;
+            return;
         }
 
         const bool render_required = active_page->onEvent(events.front());
         events.pop();
-        return render_required;
+        
+        if (not render_required) {
+            return;
+        }
+
+        render_system.prepare();
+        active_page->render(render_system);
+        render_system.finish();
     }
 
 public:
