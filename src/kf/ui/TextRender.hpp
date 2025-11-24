@@ -120,7 +120,7 @@ public:
 
         usize written{0};
 
-        while (*str) {
+        while (*str != '\x00') {
             written += write(*str);
             str += 1;
         }
@@ -129,8 +129,6 @@ public:
     }
 
     [[nodiscard]] usize print(i32 integer) {
-        kf_Logger_debug("%d", integer);
-
         if (integer == 0) {
             return write('0');
         }
