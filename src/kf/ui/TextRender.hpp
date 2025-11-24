@@ -6,12 +6,14 @@
 
 #include <kf/aliases.hpp>
 
+#include "kf/ui/Render.hpp"
+
 namespace kf::ui {
 
 /// @brief Система отрисовки
-struct TextRender {
+struct TextRender : Render<TextRender> {
 
-    /// @brief Настройки рендера 
+    /// @brief Настройки рендера
     struct Settings {
         using RenderHandler = std::function<void(const kf::slice<const u8> &)>;
 
@@ -35,12 +37,12 @@ private:
 
 public:
     /// @brief Подготовить буфер отрисовки
-    void prepare() {
+    void prepareImpl() {
         cursor = 0;
     }
 
     /// @brief После рендера кадра
-    void finish() {
+    void finishImpl() {
         buffer[cursor - 1] = '\0';
 
         settings.render_handler({
@@ -49,64 +51,65 @@ public:
         });
     }
 
+private:
+
     // Значения
 
-    void string(const char *str) {
+    void stringImpl(const char *str) {
         (void) print(str);
     }
 
-    void number(i32 integer) {
+    void numberImpl(i32 integer) {
         (void) print(integer);
     }
 
-    void number(f64 real, u8 rounding) {
+    void numberImpl(f64 real, u8 rounding) {
         (void) print(real, rounding);
     }
 
     // Оформление
 
-    void arrow() {
+    void arrowImpl() {
         (void) write('-');
         (void) write('>');
         (void) write(' ');
     }
 
-    void colon() {
+    void colonImpl() {
         (void) write(':');
         (void) write(' ');
     }
 
-    void contrastBegin() {
+    void contrastBeginImpl() {
         (void) write(0x81);
     }
 
-    void contrastEnd() {
+    void contrastEndImpl() {
         (void) write(0x80);
     }
 
-    void blockBegin() {
+    void blockBeginImpl() {
         (void) write('[');
     }
 
-    void blockEnd() {
+    void blockEndImpl() {
         (void) write(']');
     }
 
-    void variableBegin() {
+    void variableBeginImpl() {
         (void) write('<');
     }
 
-    void variableEnd() {
+    void variableEndImpl() {
         (void) write('>');
     }
 
     // Управление
 
-    void widgetEnd() {
+    void widgetEndImpl() {
         (void) write('\n');
     }
 
-private:
     [[nodiscard]] usize print(const char *str) {
         if (nullptr == str) {
             str = "nullptr";
