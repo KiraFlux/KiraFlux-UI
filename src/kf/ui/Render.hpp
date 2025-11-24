@@ -29,7 +29,7 @@ template<typename Impl> struct Render {
 
     void blockBegin() { impl().blockBeginImpl(); }
 
-    void blockEnd() { impl().blockEnd(); }
+    void blockEnd() { impl().blockEndImpl(); }
 
     void variableBegin() { impl().variableBeginImpl(); }
 
