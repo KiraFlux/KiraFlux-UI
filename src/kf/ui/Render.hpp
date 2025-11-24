@@ -11,9 +11,22 @@ namespace kf::ui {
 /// @brief Система отрисовки
 struct Render {
 
+    /// @brief Настройки рендера 
     struct Settings {
         using RenderHandler = std::function<void(const kf::slice<const u8> &)>;
+
+        static constexpr auto rows_default{4};
+        static constexpr auto cols_default{16};
+
+        /// @brief Обработчик отрисовки
         RenderHandler render_handler{nullptr};
+
+        /// @brief Кол-во строк
+        u16 rows{rows_default};
+
+        /// @brief Максимальная длина строки
+        u16 cols{cols_default};
+
     } settings{};
 
 private:
@@ -21,8 +34,6 @@ private:
     usize cursor{0};
 
 public:
-    u16 rows{8}, cols{21};
-
     /// @brief Подготовить буфер отрисовки
     void prepare() {
         cursor = 0;

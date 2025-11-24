@@ -161,7 +161,7 @@ public:
             render.string(title);
             render.widgetEnd();
 
-            const auto rows = render.rows - 1;
+            const auto rows = render.settings.rows - 1;
 
             const auto start = (totalWidgets() > rows) ? std::min(cursor, totalWidgets() - rows) : 0;
             const auto end = std::min(start + rows, totalWidgets());
