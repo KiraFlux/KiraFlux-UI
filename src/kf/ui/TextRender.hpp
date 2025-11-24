@@ -51,8 +51,6 @@ public:
         });
     }
 
-private:
-
     // Значения
 
     void stringImpl(const char *str) {

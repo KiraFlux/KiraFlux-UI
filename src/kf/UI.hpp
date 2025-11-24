@@ -10,7 +10,9 @@
 #include <kf/aliases.hpp>
 #include <kf/tools/meta/Singleton.hpp>
 
+#include "kf/ui/Event.hpp"
 #include "kf/ui/TextRender.hpp"
+
 
 namespace kf {
 
@@ -21,36 +23,7 @@ struct UI final : tools::Singleton<UI> {
     // Временно, будет убрано после обобщения политики рендера
     using Render = ui::TextRender;
 
-    /// @brief Входящее событие
-    struct Event {
-
-        /// @brief Тип события
-        enum class Type {
-            // Управление
-
-            /// @brief Ничего (Заглушка)
-            None,
-
-            /// @brief Принудительный рендер
-            Update,
-
-            // События страницы
-
-            /// @brief Смещение курсора
-            PageCursorMove,
-
-            // События виджета
-
-            /// @brief Клик
-            WidgetClick,
-
-            /// @brief Получено значение
-            WidgetValueChange,
-        } type : 4;
-
-        /// @brief Значение события
-        signed value : 4;
-    };
+    using Event = ui::Event;
 
 public:
     struct Page;
@@ -177,7 +150,7 @@ public:
         /// @returns true - Требуется перерисовка
         /// @returns false - перерисовка не требуется
         bool onEvent(Event event) {
-            switch (event.type) {
+            switch (event.type()) {
                 case Event::Type::None: {
                     return false;
                 }
@@ -185,14 +158,14 @@ public:
                     return true;
                 }
                 case Event::Type::PageCursorMove: {
-                    moveCursor(event.value);
+                    moveCursor(event.value());
                     return true;
                 }
                 case Event::Type::WidgetClick: {
                     return widgets[cursor]->onClick();
                 }
                 case Event::Type::WidgetValueChange: {
-                    return widgets[cursor]->onChange(event.value);
+                    return widgets[cursor]->onChange(event.value());
                 }
             }
             return false;
@@ -247,7 +220,7 @@ public:
 
         const bool render_required = active_page->onEvent(events.front());
         events.pop();
-        
+
         if (not render_required) {
             return;
         }
@@ -277,7 +250,8 @@ public:
         explicit Button(
             Page &root,
             const char *label,
-            ClickHandler on_click) :
+            ClickHandler on_click
+        ) :
             Widget{root},
             label{label},
             on_click{std::move(on_click)} {}
@@ -313,14 +287,16 @@ public:
     public:
         explicit CheckBox(
             ChangeHandler change_handler,
-            bool default_state = false) :
+            bool default_state = false
+        ) :
             on_change{std::move(change_handler)},
             state{default_state} {}
 
         explicit CheckBox(
             Page &root,
             ChangeHandler change_handler,
-            bool default_state = false) :
+            bool default_state = false
+        ) :
             Widget{root},
             on_change{std::move(change_handler)},
             state{default_state} {}
@@ -382,14 +358,16 @@ public:
     public:
         explicit ComboBox(
             Container items,
-            T &val) :
+            T &val
+        ) :
             items{std::move(items)},
             value{val} {}
 
         explicit ComboBox(
             Page &root,
             Container items,
-            T &val) :
+            T &val
+        ) :
             Widget{root},
             items{std::move(items)},
             value{val} {}
@@ -428,12 +406,14 @@ public:
     public:
         explicit Display(
             Page &root,
-            const T &val) :
+            const T &val
+        ) :
             Widget{root},
             value{val} {}
 
         explicit Display(
-            const T &val) :
+            const T &val
+        ) :
             value{val} {}
 
         void doRender(Render &render) const override {
@@ -464,7 +444,8 @@ public:
         explicit Labeled(
             Page &root,
             const char *label,
-            W impl) :
+            W impl
+        ) :
             Widget{root},
             label{label},
             impl{std::move(impl)} {}
@@ -516,7 +497,8 @@ public:
         explicit SpinBox(
             T &value,
             T step = static_cast<T>(1),
-            Mode mode = Mode::Arithmetic) :
+            Mode mode = Mode::Arithmetic
+        ) :
             mode{mode},
             value{value},
             step{step} {}
@@ -525,7 +507,8 @@ public:
             Page &root,
             T &value,
             T step = static_cast<T>(1),
-            Mode mode = Mode::Arithmetic) :
+            Mode mode = Mode::Arithmetic
+        ) :
             Widget{root},
             mode{mode},
             value{value},
