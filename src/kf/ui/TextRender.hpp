@@ -129,6 +129,12 @@ public:
     }
 
     [[nodiscard]] usize print(i32 integer) {
+        kf_Logger_debug("%d", integer);
+
+        if (integer == 0) {
+            return write('0');
+        }
+
         usize written{0};
 
         if (integer < 0) {

@@ -32,16 +32,6 @@ public:
     struct Widget {
 
     public:
-        /// @brief Конструктор виджета с автоматическим добавлением на страницу
-        /// @param root Страница, которая будет содержать данный виджет
-        /// @details Вызывает <code>Page::addWidget</code>
-        explicit Widget(Page &root) {
-            root.addWidget(*this);
-        }
-
-        /// @brief Конструктор виджета по умолчанию, не добавляет себя на страницу
-        explicit Widget() = default;
-
         /// @brief Отрисовать виджет
         /// @param render Способ отрисовки
         virtual void doRender(Render &render) const = 0;
@@ -85,7 +75,7 @@ public:
 
         public:
             explicit PageSetter(Page &target) :
-                Widget{target}, target{target} {}
+                target{target} {}
 
             /// @brief Устанавливает активную страницу
             bool onClick() override {
@@ -162,10 +152,14 @@ public:
                     return true;
                 }
                 case Event::Type::WidgetClick: {
-                    return widgets[cursor]->onClick();
+                    if (totalWidgets() > 0) {
+                        return widgets[cursor]->onClick();
+                    }
                 }
                 case Event::Type::WidgetValueChange: {
-                    return widgets[cursor]->onChange(event.value());
+                    if (totalWidgets() > 0) {
+                        return widgets[cursor]->onChange(event.value());
+                    }
                 }
             }
             return false;
@@ -252,9 +246,10 @@ public:
             const char *label,
             ClickHandler on_click
         ) :
-            Widget{root},
             label{label},
-            on_click{std::move(on_click)} {}
+            on_click{std::move(on_click)} {
+            root.addWidget(*this);
+        }
 
         bool onClick() override {
             if (on_click) {
@@ -297,9 +292,10 @@ public:
             ChangeHandler change_handler,
             bool default_state = false
         ) :
-            Widget{root},
             on_change{std::move(change_handler)},
-            state{default_state} {}
+            state{default_state} {
+            root.addWidget(*this);
+        }
 
         bool onClick() override {
             setState(not state);
@@ -368,9 +364,10 @@ public:
             Container items,
             T &val
         ) :
-            Widget{root},
             items{std::move(items)},
-            value{val} {}
+            value{val} {
+            root.addWidget(*this);
+        }
 
         bool onChange(int direction) override {
             moveCursor(direction);
@@ -408,8 +405,9 @@ public:
             Page &root,
             const T &val
         ) :
-            Widget{root},
-            value{val} {}
+            value{val} {
+            root.addWidget(*this);
+        }
 
         explicit Display(
             const T &val
@@ -446,9 +444,10 @@ public:
             const char *label,
             W impl
         ) :
-            Widget{root},
             label{label},
-            impl{std::move(impl)} {}
+            impl{std::move(impl)} {
+            root.addWidget(*this);
+        }
 
         bool onClick() override { return impl.onClick(); }
 
@@ -509,10 +508,11 @@ public:
             T step = static_cast<T>(1),
             Mode mode = Mode::Arithmetic
         ) :
-            Widget{root},
             mode{mode},
             value{value},
-            step{step} {}
+            step{step} {
+            root.addWidget(*this);
+        }
 
         bool onClick() override {
             is_step_setting_mode = not is_step_setting_mode;
