@@ -20,37 +20,38 @@ struct UI final : tools::Singleton<UI> {
 
     using Render = ui::Render;
 
-    /// @brief Событие
-    enum class Event {
+    /// @brief Входящее событие
+    struct Event {
 
-        // Управление
+        /// @brief Тип события
+        enum class Type {
+            // Управление
 
-        /// @brief Ничего (Заглушка)
-        None,
+            /// @brief Ничего (Заглушка)
+            None,
 
-        /// @brief Принудительное обновление
-        Update,
+            /// @brief Принудительный рендер
+            Update,
 
-        // События страницы
+            // События страницы
 
-        /// @brief Выбор следующего элемента
-        ElementNext,
+            /// @brief Смещение курсора
+            PageCursorMove,
 
-        /// @brief Смена элемента
-        ElementPrevious,
+            // События виджета
 
-        // События виджета
+            /// @brief Клик
+            WidgetClick,
 
-        /// @brief Клик
-        Click,
+            /// @brief Получено значение
+            WidgetValueChange,
+        } type : 4;
 
-        /// @brief Изменить элемент +
-        ChangeIncrement,
-
-        /// @brief Изменить элемент -
-        ChangeDecrement,
+        /// @brief Значение события
+        signed value : 4;
     };
 
+public:
     struct Page;
 
     /// @brief Виджет
@@ -175,29 +176,22 @@ struct UI final : tools::Singleton<UI> {
         /// @returns true - Требуется перерисовка
         /// @returns false - перерисовка не требуется
         bool onEvent(Event event) {
-            switch (event) {
-                case Event::None: {
+            switch (event.type) {
+                case Event::Type::None: {
                     return false;
                 }
-                case Event::Update: {
+                case Event::Type::Update: {
                     return true;
                 }
-                case Event::ElementNext: {
-                    moveCursor(+1);
+                case Event::Type::PageCursorMove: {
+                    moveCursor(event.value);
                     return true;
                 }
-                case Event::ElementPrevious: {
-                    moveCursor(-1);
-                    return true;
-                }
-                case Event::Click: {
+                case Event::Type::WidgetClick: {
                     return widgets[cursor]->onClick();
                 }
-                case Event::ChangeIncrement: {
-                    return widgets[cursor]->onChange(+1);
-                }
-                case Event::ChangeDecrement: {
-                    return widgets[cursor]->onChange(-1);
+                case Event::Type::WidgetValueChange: {
+                    return widgets[cursor]->onChange(event.value);
                 }
             }
             return false;
