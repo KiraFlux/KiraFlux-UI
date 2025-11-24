@@ -327,7 +327,9 @@ public:
     template<typename T, usize N> struct ComboBox final : Widget {
         static_assert(N >= 1, "N >= 1");
 
-    public:
+        /// @brief Тип выбираемого значения
+        using Value = T;
+
         /// @brief Элемент выбора
         struct Item {
 
