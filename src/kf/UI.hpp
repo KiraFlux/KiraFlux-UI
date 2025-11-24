@@ -31,7 +31,13 @@ public:
     /// @brief Виджет
     struct Widget {
 
-    public:
+        /// @brief Создать и добавить на страницу
+        explicit Widget(Page &root) {
+            root.addWidget(*this);
+        }
+
+        explicit Widget() = default;
+
         /// @brief Отрисовать виджет
         /// @param render Способ отрисовки
         virtual void doRender(Render &render) const = 0;
@@ -246,10 +252,9 @@ public:
             const char *label,
             ClickHandler on_click
         ) :
+            Widget{root},
             label{label},
-            on_click{std::move(on_click)} {
-            root.addWidget(*this);
-        }
+            on_click{std::move(on_click)} {}
 
         bool onClick() override {
             if (on_click) {
@@ -292,10 +297,9 @@ public:
             ChangeHandler change_handler,
             bool default_state = false
         ) :
+            Widget{root},
             on_change{std::move(change_handler)},
-            state{default_state} {
-            root.addWidget(*this);
-        }
+            state{default_state} {}
 
         bool onClick() override {
             setState(not state);
@@ -366,10 +370,9 @@ public:
             T &val,
             Container items
         ) :
+            Widget{root},
             items{std::move(items)},
-            value{val} {
-            root.addWidget(*this);
-        }
+            value{val} {}
 
         bool onChange(int direction) override {
             moveCursor(direction);
@@ -407,9 +410,8 @@ public:
             Page &root,
             const T &val
         ) :
-            value{val} {
-            root.addWidget(*this);
-        }
+            Widget{root},
+            value{val} {}
 
         explicit Display(
             const T &val
@@ -446,10 +448,9 @@ public:
             const char *label,
             W impl
         ) :
+            Widget{root},
             label{label},
-            impl{std::move(impl)} {
-            root.addWidget(*this);
-        }
+            impl{std::move(impl)} {}
 
         bool onClick() override { return impl.onClick(); }
 
@@ -510,11 +511,10 @@ public:
             T step = static_cast<T>(1),
             Mode mode = Mode::Arithmetic
         ) :
+            Widget{root},
             mode{mode},
             value{value},
-            step{step} {
-            root.addWidget(*this);
-        }
+            step{step} {}
 
         bool onClick() override {
             is_step_setting_mode = !is_step_setting_mode;
