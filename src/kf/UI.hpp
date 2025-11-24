@@ -1,16 +1,15 @@
 #pragma once
 
-#include <type_traits>
-#include <utility>
+#include <array>
 #include <cmath>
 #include <functional>
 #include <queue>
-#include <array>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 #include <kf/aliases.hpp>
 #include <kf/tools/meta/Singleton.hpp>
-
 
 namespace kf {
 
@@ -70,17 +69,29 @@ struct UI final : tools::Singleton<UI> {
             (void) write(' ');
         }
 
-        void contrastBegin() { (void) write(0x81); }
+        void contrastBegin() {
+            (void) write(0x81);
+        }
 
-        void contrastEnd() { (void) write(0x80); }
+        void contrastEnd() {
+            (void) write(0x80);
+        }
 
-        void blockBegin() { (void) write('['); }
+        void blockBegin() {
+            (void) write('[');
+        }
 
-        void blockEnd() { (void) write(']'); }
+        void blockEnd() {
+            (void) write(']');
+        }
 
-        void variableBegin() { (void) write('<'); }
+        void variableBegin() {
+            (void) write('<');
+        }
 
-        void variableEnd() { (void) write('>'); }
+        void variableEnd() {
+            (void) write('>');
+        }
 
         // Управление
 
@@ -89,7 +100,6 @@ struct UI final : tools::Singleton<UI> {
         }
 
     private:
-
         [[nodiscard]] usize print(const char *str) {
             if (nullptr == str) {
                 str = "nullptr";
@@ -216,7 +226,6 @@ struct UI final : tools::Singleton<UI> {
     struct Widget {
 
     public:
-
         /// @brief Конструктор виджета с автоматическим добавлением на страницу
         /// @param root Страница, которая будет содержать данный виджет
         /// @details Вызывает <code>Page::addWidget</code>
@@ -258,18 +267,15 @@ struct UI final : tools::Singleton<UI> {
     struct Page {
 
     private:
-
         /// @brief Специальный виджет для создания кнопки перехода на страницу
         /// @note Не используется в пользовательском коде. Для связывания страниц используйте <code>kf::ui::Page::link</code>
         struct PageSetter final : Widget {
 
         private:
-
             /// @brief Страница перехода
             Page &target;
 
         public:
-
             explicit PageSetter(Page &target) :
                 Widget{target}, target{target} {}
 
@@ -292,7 +298,6 @@ struct UI final : tools::Singleton<UI> {
         PageSetter to_this{*this};
 
     public:
-
         explicit Page(const char *title) :
             title{title} {}
 
@@ -323,7 +328,6 @@ struct UI final : tools::Singleton<UI> {
         [[nodiscard]] inline usize totalWidgets() const { return static_cast<int>(widgets.size()); }
 
     private:
-
         /// @brief Максимальная позиция курсора
         [[nodiscard]] inline usize cursorPositionMax() const { return totalWidgets() - 1; }
 
@@ -335,7 +339,6 @@ struct UI final : tools::Singleton<UI> {
     };
 
 private:
-
     /// @brief Входящие события
     std::queue<Event> events{};
 
@@ -349,7 +352,6 @@ private:
     Render render_system{};
 
 public:
-
     /// @brief Установить активную страницу
     void bind(Page &page) {
         previous_page = active_page;
@@ -365,7 +367,8 @@ public:
     slice<const u8> render() {
         if (nullptr == active_page) {
             constexpr u8 s[] = "null page";
-            return {s, sizeof(s)};;
+            return {s, sizeof(s)};
+            ;
         }
 
         render_system.reset();
@@ -403,7 +406,6 @@ public:
         using ClickHandler = std::function<void()>;
 
     private:
-
         /// @brief Метка кнопки
         const char *label;
 
@@ -411,12 +413,10 @@ public:
         ClickHandler on_click;
 
     public:
-
         explicit Button(
             Page &root,
             const char *label,
-            ClickHandler on_click
-        ) :
+            ClickHandler on_click) :
             Widget{root},
             label{label},
             on_click{std::move(on_click)} {}
@@ -443,7 +443,6 @@ public:
         using ChangeHandler = std::function<void(bool)>;
 
     private:
-
         /// @brief Обработчик изменения
         ChangeHandler on_change;
 
@@ -451,19 +450,16 @@ public:
         bool state;
 
     public:
-
         explicit CheckBox(
             ChangeHandler change_handler,
-            bool default_state = false
-        ) :
+            bool default_state = false) :
             on_change{std::move(change_handler)},
             state{default_state} {}
 
         explicit CheckBox(
             Page &root,
             ChangeHandler change_handler,
-            bool default_state = false
-        ) :
+            bool default_state = false) :
             Widget{root},
             on_change{std::move(change_handler)},
             state{default_state} {}
@@ -483,7 +479,6 @@ public:
         }
 
     private:
-
         void setState(bool new_state) {
             state = new_state;
 
@@ -500,7 +495,6 @@ public:
         static_assert(N >= 1, "N >= 1");
 
     public:
-
         /// @brief Элемент выбора
         struct Item {
 
@@ -515,7 +509,6 @@ public:
         using Container = std::array<Item, N>;
 
     private:
-
         /// @brief Элементы выбора
         const Container items;
 
@@ -526,19 +519,16 @@ public:
         int cursor{0};
 
     public:
-
         explicit ComboBox(
             Container items,
-            T &val
-        ) :
+            T &val) :
             items{std::move(items)},
             value{val} {}
 
         explicit ComboBox(
             Page &root,
             Container items,
-            T &val
-        ) :
+            T &val) :
             Widget{root},
             items{std::move(items)},
             value{val} {}
@@ -558,7 +548,6 @@ public:
         }
 
     private:
-
         /// @brief Сместить курсор
         /// @param delta смещение
         void moveCursor(int delta) {
@@ -572,22 +561,18 @@ public:
     template<typename T> struct Display final : Widget {
 
     private:
-
         /// @brief Отображаемое значение
         const T &value;
 
     public:
-
         explicit Display(
             Page &root,
-            const T &val
-        ) :
+            const T &val) :
             Widget{root},
             value{val} {}
 
         explicit Display(
-            const T &val
-        ) :
+            const T &val) :
             value{val} {}
 
         void doRender(Render &render) const override {
@@ -608,7 +593,6 @@ public:
         using Impl = W;
 
     private:
-
         /// @brief Метка
         const char *label;
 
@@ -616,12 +600,10 @@ public:
         W impl;
 
     public:
-
         explicit Labeled(
             Page &root,
             const char *label,
-            W impl
-        ) :
+            W impl) :
             Widget{root},
             label{label},
             impl{std::move(impl)} {}
@@ -657,7 +639,6 @@ public:
         };
 
     private:
-
         /// @brief
         bool is_step_setting_mode{false};
 
@@ -674,8 +655,7 @@ public:
         explicit SpinBox(
             T &value,
             T step = static_cast<T>(1),
-            Mode mode = Mode::Arithmetic
-        ) :
+            Mode mode = Mode::Arithmetic) :
             mode{mode},
             value{value},
             step{step} {}
@@ -684,8 +664,7 @@ public:
             Page &root,
             T &value,
             T step = static_cast<T>(1),
-            Mode mode = Mode::Arithmetic
-        ) :
+            Mode mode = Mode::Arithmetic) :
             Widget{root},
             mode{mode},
             value{value},
@@ -748,7 +727,6 @@ public:
             }
         }
     };
-
 };
 
-}
+}// namespace kf
