@@ -5,8 +5,10 @@
 #include <functional>
 
 #include <kf/aliases.hpp>
+#include <kf/slice.hpp>
 
 #include "kf/ui/Render.hpp"
+
 
 namespace kf::ui {
 
@@ -21,7 +23,9 @@ struct TextRender : Render<TextRender> {
         static constexpr auto cols_default{16};
 
         /// @brief Обработчик отрисовки
-        RenderHandler render_handler{nullptr};
+        RenderHandler on_render_finish{nullptr};
+
+        kf::slice<u8> buffer{};
 
         /// @brief Кол-во строк
         u16 rows{rows_default};
@@ -32,23 +36,24 @@ struct TextRender : Render<TextRender> {
     } settings{};
 
 private:
-    std::array<u8, 128> buffer{};
     usize cursor{0};
 
 public:
-    /// @brief Подготовить буфер отрисовки
     void prepareImpl() {
         cursor = 0;
     }
 
     /// @brief После рендера кадра
     void finishImpl() {
-        buffer[cursor - 1] = '\0';
+        if (nullptr == settings.buffer.data()) {
+            return;
+        }
 
-        settings.render_handler({
-            buffer.data(),
-            cursor,
-        });
+        settings.buffer.data()[cursor - 1] = '\0';
+
+        if (nullptr != settings.on_render_finish) {
+            settings.on_render_finish({settings.buffer.data(), cursor});
+        }
     }
 
     // Значения
@@ -187,11 +192,11 @@ public:
 
     /// @brief Записать байт в буфер
     [[nodiscard]] usize write(u8 c) {
-        if (cursor >= buffer.size()) {
+        if (cursor >= settings.buffer.size()) {
             return 0;
         }
 
-        buffer[cursor] = c;
+        settings.buffer.data()[cursor] = c;
         cursor += 1;
         return 1;
     }

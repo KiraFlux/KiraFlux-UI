@@ -1,11 +1,9 @@
 #pragma once
 
-#include <type_traits>
-
 namespace kf::ui {
 
 template<typename Impl> struct Render {
-public:
+    /// @brief Подготовить буфер отрисовки
     void prepare() { impl().prepareImpl(); }
 
     /// @brief После рендера кадра
