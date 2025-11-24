@@ -237,17 +237,14 @@ public:
     }
 
     /// @brief Рендеринг активной страницы
-    slice<const u8> render() {
+    void render() {
         if (nullptr == active_page) {
-            constexpr u8 s[] = "null page";
-            return {s, sizeof(s)};
-            ;
+            return;
         }
 
-        render_system.reset();
+        render_system.prepare();
         active_page->render(render_system);
-
-        return render_system.data();
+        render_system.finish();
     }
 
     /// @brief Добавить событие в очередь

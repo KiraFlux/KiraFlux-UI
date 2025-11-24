@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cmath>
+#include <functional>
 
 #include <kf/aliases.hpp>
 
@@ -10,26 +11,29 @@ namespace kf::ui {
 /// @brief Система отрисовки
 struct Render {
 
+    using RenderHandler = std::function<void(const kf::slice<const u8> &)>;
+
 private:
     std::array<u8, 128> buffer{};
     usize cursor{0};
 
 public:
+    RenderHandler render_handler{nullptr};
     u16 rows{8}, cols{21};
 
-    /// @brief Подготовить буфер
-    slice<const u8> data() {
-        buffer[cursor] = '\0';
-
-        return {
-            buffer.data(),
-            cursor,
-        };
+    /// @brief Подготовить буфер отрисовки
+    void prepare() {
+        cursor = 0;
     }
 
-    /// @brief Сбросить буфер отрисовки
-    void reset() {
-        cursor = 0;
+    /// @brief После рендера кадра
+    void finish() {
+        buffer[cursor - 1] = '\0';
+
+        render_handler({
+            buffer.data(),
+            cursor,
+        });
     }
 
     // Значения
