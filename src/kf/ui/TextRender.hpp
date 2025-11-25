@@ -12,8 +12,9 @@
 
 namespace kf::ui {
 
-/// @brief Система отрисовки
+/// @brief Система отрисовки простым текстом
 struct TextRender : Render<TextRender> {
+    friend struct Render<TextRender>;
 
     /// @brief Настройки рендера
     struct Settings {
@@ -25,6 +26,7 @@ struct TextRender : Render<TextRender> {
         /// @brief Обработчик отрисовки
         RenderHandler on_render_finish{nullptr};
 
+        /// @brief буфер вывода
         kf::slice<u8> buffer{};
 
         /// @brief Кол-во строк
@@ -38,7 +40,6 @@ struct TextRender : Render<TextRender> {
 private:
     usize cursor{0};
 
-public:
     void prepareImpl() {
         cursor = 0;
     }

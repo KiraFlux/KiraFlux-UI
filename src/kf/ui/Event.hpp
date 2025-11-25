@@ -1,7 +1,5 @@
 #pragma once
 
-#define enumerate(x) ((x) << value_bits)
-
 namespace kf::ui {
 
 /// @brief Входящее событие
@@ -22,8 +20,11 @@ private:
     Storage storage;
 
 public:
+
     /// @brief Тип события
     enum class Type : Storage {
+#define enumerate(x) ((x) << value_bits)
+
         // Управление
 
         /// @brief Ничего (Заглушка)
@@ -46,6 +47,8 @@ public:
         /// @brief Получено значение
         /// @details Может содержать value
         WidgetValueChange = enumerate(4),
+
+#undef enumerate
     };
 
     /// @brief Примитив значения
@@ -61,10 +64,12 @@ public:
             )
         } {}
 
+    /// @brief Тип события
     [[nodiscard]] constexpr Type type() const {
         return static_cast<Type>(storage & type_mask);
     }
 
+    /// @brief Значение события
     [[nodiscard]] constexpr Value value() const {
         constexpr auto sign_bit_mask = 1 << (value_bits - 1);
 
@@ -77,6 +82,4 @@ public:
 };
 
 }
-
-#undef enumerate
 
