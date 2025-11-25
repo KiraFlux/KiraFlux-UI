@@ -114,7 +114,9 @@ template<typename R> struct UI final : tools::Singleton<UI<R>> {
 
         /// @brief Добавить виджет в данную страницу
         /// @param widget Добавляемый виджет
-        void addWidget(Widget &widget) { widgets.push_back(&widget); }
+        void addWidget(Widget &widget) {
+            widgets.push_back(&widget);
+        }
 
         /// @brief Связывание страниц
         /// @details Добавляет виджеты перехода к страницам
@@ -130,10 +132,10 @@ template<typename R> struct UI final : tools::Singleton<UI<R>> {
             render.string(title);
             render.widgetEnd();
 
-            const auto remainig_rows = render.settings().rows - 1;
+            const auto remaining_rows = render.settings.rows - 1;
 
-            const auto start = (totalWidgets() > remainig_rows) ? std::min(cursor, totalWidgets() - remainig_rows) : 0;
-            const auto end = std::min(start + remainig_rows, totalWidgets());
+            const auto start = (totalWidgets() > remaining_rows) ? std::min(cursor, totalWidgets() - remaining_rows) : 0;
+            const auto end = std::min(start + remaining_rows, totalWidgets());
 
             for (auto i = start; i < end; i += 1) {
                 widgets[i]->render(render, i == cursor);
@@ -204,7 +206,7 @@ private:
 public:
     /// @brief Получить экземпляр настроек системы рендера
     typename RenderImpl::Settings &getRenderSettings() {
-        return render_system.settings();
+        return render_system.settings;
     }
 
     /// @brief Установить активную страницу
@@ -474,7 +476,7 @@ public:
         static_assert(std::is_arithmetic<T>::value, "T must be arithmetic");
 
         /// @brief Тип скалярной величины виджета
-        using Scalar = T;
+        using Value = T;
 
         /// @brief Режим изменения значения
         enum class Mode : unsigned char {
@@ -572,7 +574,7 @@ public:
                 value += direction * step;
 
                 // Проверка для режима только положительных значений
-                if (mode == Mode::ArithmeticPositiveOnly && value < 0) {
+                if (mode == Mode::ArithmeticPositiveOnly and value < 0) {
                     value = 0;
                 }
             }

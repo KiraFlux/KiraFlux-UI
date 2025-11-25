@@ -9,6 +9,7 @@
 
 #include "kf/ui/Render.hpp"
 
+
 namespace kf::ui {
 
 /// @brief Система отрисовки простым текстом
@@ -35,27 +36,25 @@ struct TextRender : Render<TextRender> {
         u16 cols{cols_default};
     };
 
-private:
-    Settings settings_{};
-    usize cursor{0};
+    Settings settings{};
 
-    Settings &settingsImpl() {
-        return settings_;
-    }
+private:
+
+    usize cursor{0};
 
     void prepareImpl() {
         cursor = 0;
     }
 
     void finishImpl() {
-        if (nullptr == settings_.buffer.data()) {
+        if (nullptr == settings.buffer.data()) {
             return;
         }
 
-        settings_.buffer.data()[cursor - 1] = '\0';
+        settings.buffer.data()[cursor - 1] = '\0';
 
-        if (nullptr != settings_.on_render_finish) {
-            settings_.on_render_finish({settings_.buffer.data(), cursor});
+        if (nullptr != settings.on_render_finish) {
+            settings.on_render_finish({settings.buffer.data(), cursor});
         }
     }
 
@@ -192,11 +191,11 @@ private:
     }
 
     [[nodiscard]] usize write(u8 c) {
-        if (cursor >= settings_.buffer.size()) {
+        if (cursor >= settings.buffer.size()) {
             return 0;
         }
 
-        settings_.buffer.data()[cursor] = c;
+        settings.buffer.data()[cursor] = c;
         cursor += 1;
         return 1;
     }

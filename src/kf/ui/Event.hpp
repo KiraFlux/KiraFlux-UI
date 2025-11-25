@@ -1,5 +1,8 @@
 #pragma once
 
+#include <kf/aliases.hpp>
+
+
 namespace kf::ui {
 
 /// @brief Входящее событие

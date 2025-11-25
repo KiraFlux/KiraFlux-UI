@@ -1,5 +1,7 @@
 #pragma once
 
+#include <kf/aliases.hpp>
+
 /// @brief отдельное пространство имён для внешних компонентов UI
 namespace kf::ui {
 
@@ -8,9 +10,6 @@ template<typename Impl> struct Render {
     friend Impl;
 
     // Управление
-
-    /// @brief Получить экземпляр настроек рендера
-    typename Impl::Settings &settings() { return impl().settingsImpl(); }
 
     /// @brief Подготовить буфер отрисовки
     void prepare() { impl().prepareImpl(); }
