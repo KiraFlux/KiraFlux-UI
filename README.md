@@ -114,8 +114,8 @@ using TextUI = kf::UI<kf::ui::TextRender>;
 // Настройка текстового рендера
 auto& render_settings = TextUI::instance().getRenderSettings();
 render_settings.buffer = text_buffer;
-render_settings.rows = 4;
-render_settings.cols = 20;
+render_settings.rows_total = 4;
+render_settings.row_max_length = 20;
 render_settings.on_render_finish = [](auto str) {
     // Обработка отрендеренного текста
 };
@@ -392,8 +392,8 @@ void setup() {
     auto& render_settings = ui.getRenderSettings();
     render_settings.buffer = {reinterpret_cast<uint8_t*>(text_buffer), 
                              sizeof(text_buffer)};
-    render_settings.rows = 4;
-    render_settings.cols = 20;
+    render_settings.rows_total = 4;
+    render_settings.row_max_length = 20;
     render_settings.on_render_finish = [](const auto& str) {
         Serial.print("UI: ");
         Serial.println(reinterpret_cast<const char*>(str.data()));

@@ -129,15 +129,14 @@ template<typename R> struct UI final : tools::Singleton<UI<R>> {
         /// @brief Отобразить страницу
         /// @param render Система отрисовки
         void render(RenderImpl &render) {
-            render.string(title);
-            render.widgetEnd();
+            render.title(title);
 
-            const auto remaining_rows = render.settings.rows - 1;
-
-            const auto start = (totalWidgets() > remaining_rows) ? std::min(cursor, totalWidgets() - remaining_rows) : 0;
-            const auto end = std::min(start + remaining_rows, totalWidgets());
+            const auto available = render.widgetsAvailable();
+            const auto start = (totalWidgets() > available) ? std::min(cursor, totalWidgets() - available) : 0;
+            const auto end = std::min(start + available, totalWidgets());
 
             for (auto i = start; i < end; i += 1) {
+                render.widgetBegin(i);
                 widgets[i]->render(render, i == cursor);
                 render.widgetEnd();
             }
@@ -145,26 +144,25 @@ template<typename R> struct UI final : tools::Singleton<UI<R>> {
 
         /// @brief Отреагировать на событие
         /// @param event Входящее событие
-        /// @returns true - Требуется перерисовка
-        /// @returns false - перерисовка не требуется
+        /// @return true Рендер требуется
+        /// @return false Рендер не требуется
         bool onEvent(Event event) {
-            using Type = Event::Type;
             switch (event.type()) {
-                case Type::None: {
+                case Event::Type::None: {
                     return false;
                 }
-                case Type::Update: {
+                case Event::Type::Update: {
                     return true;
                 }
-                case Type::PageCursorMove: {
+                case Event::Type::PageCursorMove: {
                     return moveCursor(event.value());
                 }
-                case Type::WidgetClick: {
+                case Event::Type::WidgetClick: {
                     if (totalWidgets() > 0) {
                         return widgets[cursor]->onClick();
                     }
                 }
-                case Type::WidgetValueChange: {
+                case Event::Type::WidgetValueChange: {
                     if (totalWidgets() > 0) {
                         return widgets[cursor]->onChange(event.value());
                     }
@@ -219,7 +217,7 @@ public:
         events.push(event);
     }
 
-    /// @brief Прокрутка входящих событий. Перерисовка при необходимости
+    /// @brief Прокрутка входящих событий. Выполняет рендер при необходимости
     void poll() {
         // mostly time active page is not null, so null-check is after queue.
         if (events.empty() or nullptr == active_page) {

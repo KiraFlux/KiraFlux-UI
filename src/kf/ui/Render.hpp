@@ -17,11 +17,19 @@ template<typename Impl> struct Render {
     /// @brief После рендера кадра
     void finish() { impl().finishImpl(); }
 
-    /// @brief Окончание виджета
+    /// @brief Начало отрисовки виджета
+    void widgetBegin(usize index) { impl().widgetBeginImpl(index); }
+
+    /// @brief Завершение отрисовки виджета
     void widgetEnd() { impl().widgetEndImpl(); }
 
+    /// @brief Количество виджетов, которые ещё возможно отобразить
+    [[nodiscard]] usize widgetsAvailable() { return impl().widgetsAvailableImpl(); }
 
     // Значения
+
+    /// @brief Заголовок страницы
+    void title(const char *title) { impl().titleImpl(title); }
 
     /// @brief Отобразить строку
     void string(const char *str) { impl().stringImpl(str); }
@@ -60,7 +68,7 @@ template<typename Impl> struct Render {
     void variableEnd() { impl().variableEndImpl(); }
 
 private:
-    Impl &impl() { return *static_cast<Impl *>(this); }
+    inline Impl &impl() { return *static_cast<Impl *>(this); }
 };
 
 }// namespace kf::ui

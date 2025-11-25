@@ -16,6 +16,9 @@ namespace kf::ui {
 struct TextRender : Render<TextRender> {
     friend struct Render<TextRender>;
 
+    /// @brief Единица измерения текстового интерфейса в глифах
+    using GlyphUnit = u8;
+
     /// @brief Настройки рендера
     struct Settings {
         using RenderHandler = std::function<void(const kf::slice<const u8> &)>;
@@ -30,20 +33,26 @@ struct TextRender : Render<TextRender> {
         kf::slice<u8> buffer{};
 
         /// @brief Кол-во строк
-        u16 rows{rows_default};
+        GlyphUnit rows_total{rows_default};
 
         /// @brief Максимальная длина строки
-        u16 cols{cols_default};
+        GlyphUnit row_max_length{cols_default};
     };
 
     Settings settings{};
 
 private:
 
-    usize cursor{0};
+    usize buffer_cursor{0};
+    GlyphUnit cursor_row{0}, cursor_col{0};
+    bool contrast_mode{false};
+
+    [[nodiscard]] usize widgetsAvailableImpl() const {
+        return settings.rows_total - cursor_row;
+    }
 
     void prepareImpl() {
-        cursor = 0;
+        buffer_cursor = 0;
     }
 
     void finishImpl() {
@@ -51,11 +60,18 @@ private:
             return;
         }
 
-        settings.buffer.data()[cursor - 1] = '\0';
+        cursor_row = 0;
+        cursor_col = 0;
+        settings.buffer.data()[buffer_cursor - 1] = '\0';
 
         if (nullptr != settings.on_render_finish) {
-            settings.on_render_finish({settings.buffer.data(), cursor});
+            settings.on_render_finish({settings.buffer.data(), buffer_cursor});
         }
+    }
+
+    void titleImpl(const char *title) {
+        (void) print(title);
+        (void) write('\n');
     }
 
     void stringImpl(const char *str) {
@@ -83,10 +99,12 @@ private:
 
     void contrastBeginImpl() {
         (void) write(0x81);
+        contrast_mode = true;
     }
 
     void contrastEndImpl() {
         (void) write(0x80);
+        contrast_mode = false;
     }
 
     void blockBeginImpl() {
@@ -105,9 +123,13 @@ private:
         (void) write('>');
     }
 
+    void widgetBeginImpl(usize) {}
+
     void widgetEndImpl() {
         (void) write('\n');
     }
+
+    // help methods...
 
     [[nodiscard]] usize print(const char *str) {
         if (nullptr == str) {
@@ -191,12 +213,30 @@ private:
     }
 
     [[nodiscard]] usize write(u8 c) {
-        if (cursor >= settings.buffer.size()) {
+        if (buffer_cursor >= settings.buffer.size()) {
             return 0;
         }
 
-        settings.buffer.data()[cursor] = c;
-        cursor += 1;
+        if (cursor_row >= settings.rows_total) {
+            return 0;
+        }
+
+        if ('\n' == c) {
+            cursor_row += 1;
+            cursor_col = 0;
+        } else {
+            if (cursor_col >= settings.row_max_length) {
+                if (contrast_mode and buffer_cursor < settings.buffer.size()) {
+                    settings.buffer.data()[buffer_cursor] = 0x80;
+                    buffer_cursor += 1;
+                    contrast_mode = false;
+                }
+                return 0;
+            }
+            cursor_col += 1;
+        }
+        settings.buffer.data()[buffer_cursor] = c;
+        buffer_cursor += 1;
         return 1;
     }
 };
