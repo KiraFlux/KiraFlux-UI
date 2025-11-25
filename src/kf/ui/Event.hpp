@@ -79,6 +79,18 @@ public:
                static_cast<Value>(result | ~value_mask) :
                result;
     }
+
+    // Готовые экземпляры
+
+    static constexpr Event None() { return Event{Type::None}; }
+
+    static constexpr Event Update() { return Event{Type::Update}; }
+    
+    static constexpr Event PageCursorMove(Value offset) { return Event{Type::PageCursorMove, offset}; }
+
+    static constexpr Event WidgetClick() { return Event{Type::WidgetClick}; }
+
+    static constexpr Event WidgetValueChange(Value delta) { return Event{Type::WidgetValueChange, delta}; }
 };
 
 }
