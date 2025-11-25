@@ -16,9 +16,12 @@
 namespace kf {
 
 /// @brief Пользовательский интерфейс
-/// @tparam RenderImpl Реализация системы рендера (Наследник <code>kf::ui::Render</code>)
-template<typename RenderImpl> struct UI final : tools::Singleton<UI<RenderImpl>> {
-    friend tools::Singleton<UI<RenderImpl>>;
+/// @tparam R Реализация системы рендера (Наследник <code>kf::ui::Render</code>)
+template<typename R> struct UI final : tools::Singleton<UI<R>> {
+    friend tools::Singleton<UI<R>>;
+
+    /// @brief Реализация системы рендера
+    using RenderImpl = R;
 
     // alias для единообразия
     using Event = ui::Event;
@@ -36,7 +39,7 @@ template<typename RenderImpl> struct UI final : tools::Singleton<UI<RenderImpl>>
         explicit Widget() = default;
 
         /// @brief Отрисовать виджет
-        /// @param render Способ отрисовки
+        /// @param render Система отрисовки
         virtual void doRender(RenderImpl &render) const = 0;
 
         /// @brief Действие при событии клика
@@ -51,7 +54,7 @@ template<typename RenderImpl> struct UI final : tools::Singleton<UI<RenderImpl>>
         virtual bool onChange(int direction) { return false; }
 
         /// @brief Внешняя отрисовка виджета
-        /// @param render Способ отрисовки
+        /// @param render Система отрисовки
         /// @param focused Виджет в фокусе курсора
         void render(RenderImpl &render, bool focused) const {
             if (focused) {
@@ -93,12 +96,13 @@ template<typename RenderImpl> struct UI final : tools::Singleton<UI<RenderImpl>>
         };
 
         /// @brief Виджеты данной страницы
-        std::vector<Widget *> widgets{};
+        std::vector<Widget *> widgets{}; // todo Widget refs
 
         /// @brief Заголовок страницы.
         const char *title;
 
-        /// @brief Курсор (Индекс активного виджета)
+        /// @brief Курсор 
+        /// @details Индекс активного виджета
         usize cursor{0};
 
         /// @brief Виджет перехода к данной странице
@@ -122,15 +126,14 @@ template<typename RenderImpl> struct UI final : tools::Singleton<UI<RenderImpl>>
 
         /// @brief Отобразить страницу
         /// @param render Система отрисовки
-        /// @param rows Кол-во строк
         void render(RenderImpl &render) {
             render.string(title);
             render.widgetEnd();
 
-            const auto rows = render.settings.rows - 1;
+            const auto remainig_rows = render.settings.rows - 1;
 
-            const auto start = (totalWidgets() > rows) ? std::min(cursor, totalWidgets() - rows) : 0;
-            const auto end = std::min(start + rows, totalWidgets());
+            const auto start = (totalWidgets() > remainig_rows) ? std::min(cursor, totalWidgets() - remainig_rows) : 0;
+            const auto end = std::min(start + remainig_rows, totalWidgets());
 
             for (auto i = start; i < end; i += 1) {
                 widgets[i]->render(render, i == cursor);
@@ -152,8 +155,7 @@ template<typename RenderImpl> struct UI final : tools::Singleton<UI<RenderImpl>>
                     return true;
                 }
                 case Type::PageCursorMove: {
-                    moveCursor(event.value());
-                    return true;
+                    return moveCursor(event.value());
                 }
                 case Type::WidgetClick: {
                     if (totalWidgets() > 0) {
@@ -176,10 +178,16 @@ template<typename RenderImpl> struct UI final : tools::Singleton<UI<RenderImpl>>
         /// @brief Максимальная позиция курсора
         [[nodiscard]] inline usize cursorPositionMax() const { return totalWidgets() - 1; }
 
-        void moveCursor(isize delta) {
+        /// @brief Сместить курсор на странице
+        /// @param delta Величина смещения в индексах
+        /// @return true Нужна перерисовка, Курсор установлен в новую позицию
+        /// @return false Перерисовка не требуется, Курсор установлен не изменил позиции
+        [[nodiscard]] bool moveCursor(isize delta) {
+            const auto last_cursor = cursor;
             cursor += delta;
             cursor = std::max(static_cast<isize>(cursor), 0);
             cursor = std::min(cursor, cursorPositionMax());
+            return last_cursor != cursor;
         }
     };
 
