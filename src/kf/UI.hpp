@@ -11,21 +11,18 @@
 #include <kf/tools/meta/Singleton.hpp>
 
 #include "kf/ui/Event.hpp"
-#include "kf/ui/TextRender.hpp"
 
 
 namespace kf {
 
 /// @brief Пользовательский интерфейс
-struct UI final : tools::Singleton<UI> {
-    friend struct Singleton<UI>;
+/// @tparam RenderImpl Реализация системы рендера (Наследник <code>kf::ui::Render</code>)
+template<typename RenderImpl> struct UI final : tools::Singleton<UI<RenderImpl>> {
+    friend tools::Singleton<UI<RenderImpl>>;
 
-    // Временно, будет убрано после обобщения политики рендера
-    using Render = ui::TextRender;
-
+    // alias для единообразия
     using Event = ui::Event;
 
-public:
     struct Page;
 
     /// @brief Виджет
@@ -40,7 +37,7 @@ public:
 
         /// @brief Отрисовать виджет
         /// @param render Способ отрисовки
-        virtual void doRender(Render &render) const = 0;
+        virtual void doRender(RenderImpl &render) const = 0;
 
         /// @brief Действие при событии клика
         /// @returns true - Нужна перерисовка
@@ -56,7 +53,7 @@ public:
         /// @brief Внешняя отрисовка виджета
         /// @param render Способ отрисовки
         /// @param focused Виджет в фокусе курсора
-        void render(Render &render, bool focused) const {
+        void render(RenderImpl &render, bool focused) const {
             if (focused) {
                 render.contrastBegin();
                 doRender(render);
@@ -89,7 +86,7 @@ public:
                 return true;
             }
 
-            void doRender(Render &render) const override {
+            void doRender(RenderImpl &render) const override {
                 render.arrow();
                 render.string(target.title);
             }
@@ -126,7 +123,7 @@ public:
         /// @brief Отобразить страницу
         /// @param render Система отрисовки
         /// @param rows Кол-во строк
-        void render(Render &render) {
+        void render(RenderImpl &render) {
             render.string(title);
             render.widgetEnd();
 
@@ -146,23 +143,24 @@ public:
         /// @returns true - Требуется перерисовка
         /// @returns false - перерисовка не требуется
         bool onEvent(Event event) {
+            using Type = Event::Type;
             switch (event.type()) {
-                case Event::Type::None: {
+                case Type::None: {
                     return false;
                 }
-                case Event::Type::Update: {
+                case Type::Update: {
                     return true;
                 }
-                case Event::Type::PageCursorMove: {
+                case Type::PageCursorMove: {
                     moveCursor(event.value());
                     return true;
                 }
-                case Event::Type::WidgetClick: {
+                case Type::WidgetClick: {
                     if (totalWidgets() > 0) {
                         return widgets[cursor]->onClick();
                     }
                 }
-                case Event::Type::WidgetValueChange: {
+                case Type::WidgetValueChange: {
                     if (totalWidgets() > 0) {
                         return widgets[cursor]->onChange(event.value());
                     }
@@ -193,11 +191,11 @@ private:
     Page *active_page{nullptr};
 
     /// @brief Система отображения
-    Render render_system{};
+    RenderImpl render_system{};
 
 public:
     /// @brief Получить экземпляр настроек системы рендера
-    Render::Settings &getRenderSettings() {
+    typename RenderImpl::Settings &getRenderSettings() {
         return render_system.settings;
     }
 
@@ -264,7 +262,7 @@ public:
             return false;
         }
 
-        void doRender(Render &render) const override {
+        void doRender(RenderImpl &render) const override {
             render.blockBegin();
             render.string(label);
             render.blockEnd();
@@ -311,7 +309,7 @@ public:
             return true;
         }
 
-        void doRender(Render &render) const override {
+        void doRender(RenderImpl &render) const override {
             render.string(state ? "[ 1 ]==" : "--[ 0 ]");
         }
 
@@ -382,7 +380,7 @@ public:
             return true;
         }
 
-        void doRender(Render &render) const override {
+        void doRender(RenderImpl &render) const override {
             render.variableBegin();
             render.string(items[cursor].key);
             render.variableEnd();
@@ -418,7 +416,7 @@ public:
         ) :
             value{val} {}
 
-        void doRender(Render &render) const override {
+        void doRender(RenderImpl &render) const override {
             if constexpr (std::is_floating_point<T>::value) {
                 render.number(value, 3);
             } else {
@@ -456,7 +454,7 @@ public:
 
         bool onChange(int direction) override { return impl.onChange(direction); }
 
-        void doRender(Render &render) const override {
+        void doRender(RenderImpl &render) const override {
             render.string(label);
             render.colon();
             impl.doRender(render);
@@ -530,7 +528,7 @@ public:
             return true;
         }
 
-        void doRender(Render &render) const override {
+        void doRender(RenderImpl &render) const override {
             render.variableBegin();
 
             if (is_step_setting_mode) {
@@ -544,7 +542,7 @@ public:
         }
 
     private:
-        void displayNumber(Render &render, const T &number) const {
+        void displayNumber(RenderImpl &render, const T &number) const {
             if constexpr (std::is_floating_point<T>::value) {
                 render.number(static_cast<float>(number), 4);
             } else {
