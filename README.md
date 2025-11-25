@@ -62,6 +62,7 @@ struct Render {
     // Управление
     void prepare();
     void finish();
+    void widgetBegin(usize index);
     void widgetEnd();
     
     // Значения
@@ -81,7 +82,7 @@ struct Render {
 };
 ```
 
-### Создание кастомного рендера
+### Создание пользовательского рендера
 
 ```cpp
 struct MyCustomRender : kf::ui::Render<MyCustomRender> {
@@ -100,7 +101,7 @@ private:
     // ... остальные методы
 };
 
-// Использование кастомного рендера
+// Использование пользовательского рендера
 using MyUI = kf::UI<MyCustomRender>;
 ```
 
@@ -142,20 +143,13 @@ enum class Type {
 auto& ui = TextUI::instance();
 
 // Перемещение курсора вниз
-ui.addEvent(TextUI::Event{
-    TextUI::Event::Type::PageCursorMove, 
-    +1
-});
+ui.addEvent(TextUI::Event::PageCursorMove(+1));
 
 // Клик на активном виджете
-ui.addEvent(TextUI::Event{
-    TextUI::Event::Type::WidgetClick
-});
+ui.addEvent(TextUI::Event::WidgetClick());
 
 // Принудительная перерисовка
-ui.addEvent(TextUI::Event{
-    TextUI::Event::Type::Update
-});
+ui.addEvent(TextUI::Event::Update());
 ```
 
 ## Страницы и навигация
@@ -358,13 +352,13 @@ int selected_mode = 0;
 TempDisplay temp_display(
     main_page,
     "Temperature",
-    TextUI::Display<float>{sensor_value}
+    TempDisplay::Impl{sensor_value}
 );
 
 ModeSelector mode_selector(
     main_page,
     "Mode",
-    TextUI::ComboBox<int, 3>{
+    ModeSelector::Impl{
         selected_mode,
         {{
             {"Auto", 0},
@@ -576,7 +570,7 @@ struct Labeled : Widget {
 
 ### Производительность
 - **Zero-cost абстракции** благодаря статическому полиморфизму в системе рендера*
-- **Оптимальный полиморфизм** для виджетов - динамический где это уместно
+- **Оптимальный полиморфизм** для виджетов - динамический, где это уместно
 - **Отсутствие динамической памяти** (кроме std::function в обработчиках)
 - **Минимальные накладные расходы** на обработку событий
 
