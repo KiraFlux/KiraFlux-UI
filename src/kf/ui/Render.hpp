@@ -9,6 +9,9 @@ template<typename Impl> struct Render {
 
     // Управление
 
+    /// @brief Получить экземпляр настроек рендера
+    typename Impl::Settings &settings() { return impl().settingsImpl(); }
+
     /// @brief Подготовить буфер отрисовки
     void prepare() { impl().prepareImpl(); }
 

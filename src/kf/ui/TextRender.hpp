@@ -9,7 +9,6 @@
 
 #include "kf/ui/Render.hpp"
 
-
 namespace kf::ui {
 
 /// @brief Система отрисовки простым текстом
@@ -34,30 +33,31 @@ struct TextRender : Render<TextRender> {
 
         /// @brief Максимальная длина строки
         u16 cols{cols_default};
-
-    } settings{};
+    };
 
 private:
+    Settings settings_{};
     usize cursor{0};
+
+    Settings &settingsImpl() {
+        return settings_;
+    }
 
     void prepareImpl() {
         cursor = 0;
     }
 
-    /// @brief После рендера кадра
     void finishImpl() {
-        if (nullptr == settings.buffer.data()) {
+        if (nullptr == settings_.buffer.data()) {
             return;
         }
 
-        settings.buffer.data()[cursor - 1] = '\0';
+        settings_.buffer.data()[cursor - 1] = '\0';
 
-        if (nullptr != settings.on_render_finish) {
-            settings.on_render_finish({settings.buffer.data(), cursor});
+        if (nullptr != settings_.on_render_finish) {
+            settings_.on_render_finish({settings_.buffer.data(), cursor});
         }
     }
-
-    // Значения
 
     void stringImpl(const char *str) {
         (void) print(str);
@@ -70,8 +70,6 @@ private:
     void numberImpl(f64 real, u8 rounding) {
         (void) print(real, rounding);
     }
-
-    // Оформление
 
     void arrowImpl() {
         (void) write('-');
@@ -107,8 +105,6 @@ private:
     void variableEndImpl() {
         (void) write('>');
     }
-
-    // Управление
 
     void widgetEndImpl() {
         (void) write('\n');
@@ -195,13 +191,12 @@ private:
         return written;
     }
 
-    /// @brief Записать байт в буфер
     [[nodiscard]] usize write(u8 c) {
-        if (cursor >= settings.buffer.size()) {
+        if (cursor >= settings_.buffer.size()) {
             return 0;
         }
 
-        settings.buffer.data()[cursor] = c;
+        settings_.buffer.data()[cursor] = c;
         cursor += 1;
         return 1;
     }

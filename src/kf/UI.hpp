@@ -130,7 +130,7 @@ template<typename R> struct UI final : tools::Singleton<UI<R>> {
             render.string(title);
             render.widgetEnd();
 
-            const auto remainig_rows = render.settings.rows - 1;
+            const auto remainig_rows = render.settings().rows - 1;
 
             const auto start = (totalWidgets() > remainig_rows) ? std::min(cursor, totalWidgets() - remainig_rows) : 0;
             const auto end = std::min(start + remainig_rows, totalWidgets());
@@ -204,7 +204,7 @@ private:
 public:
     /// @brief Получить экземпляр настроек системы рендера
     typename RenderImpl::Settings &getRenderSettings() {
-        return render_system.settings;
+        return render_system.settings();
     }
 
     /// @brief Установить активную страницу
