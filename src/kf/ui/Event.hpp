@@ -1,7 +1,7 @@
 #pragma once
 
 #include <kf/aliases.hpp>
-
+#include <kf/attributes.hpp>
 
 namespace kf::ui {
 
@@ -68,12 +68,12 @@ public:
         } {}
 
     /// @brief Тип события
-    [[nodiscard]] constexpr Type type() const {
+    kf_nodiscard constexpr Type type() const {
         return static_cast<Type>(storage & type_mask);
     }
 
     /// @brief Значение события
-    [[nodiscard]] constexpr Value value() const {
+    kf_nodiscard constexpr Value value() const {
         constexpr auto sign_bit_mask = 1 << (value_bits - 1);
 
         const auto result = static_cast<Value>(storage & value_mask);

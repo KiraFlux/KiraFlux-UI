@@ -1,6 +1,7 @@
 #pragma once
 
 #include <kf/algorithm.hpp>
+#include <kf/attributes.hpp>
 #include <kf/fn.hpp>
 #include <kf/type_traits.hpp>
 #include <kf/utility.hpp>
@@ -173,17 +174,17 @@ template<typename R> struct UI final : tools::Singleton<UI<R>> {
         }
 
         /// @brief Общее кол-во виджетов
-        [[nodiscard]] inline usize totalWidgets() const { return static_cast<int>(widgets.size()); }
+        kf_nodiscard inline usize totalWidgets() const { return static_cast<int>(widgets.size()); }
 
     private:
         /// @brief Максимальная позиция курсора
-        [[nodiscard]] inline usize cursorPositionMax() const { return totalWidgets() - 1; }
+        kf_nodiscard inline usize cursorPositionMax() const { return totalWidgets() - 1; }
 
         /// @brief Сместить курсор на странице
         /// @param delta Величина смещения в индексах
         /// @return true Нужна перерисовка, Курсор установлен в новую позицию
         /// @return false Перерисовка не требуется, Курсор установлен не изменил позиции
-        [[nodiscard]] bool moveCursor(isize delta) {
+        kf_nodiscard bool moveCursor(isize delta) {
             const auto last_cursor = cursor;
             cursor += delta;
             cursor = max(static_cast<isize>(cursor), 0);

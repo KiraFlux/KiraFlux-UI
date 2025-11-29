@@ -1,14 +1,16 @@
 #pragma once
 
-#include <kf/array.hpp>
-#include <math.h> // NOLINT(*-deprecated-headers)
-#include <kf/fn.hpp>
+// for avr capability
+#include <math.h>// NOLINT(*-deprecated-headers)
 
 #include <kf/aliases.hpp>
+#include <kf/array.hpp>
+#include <kf/attributes.hpp>
+#include <kf/fn.hpp>
+
 #include <kf/slice.hpp>
 
 #include "kf/ui/Render.hpp"
-
 
 namespace kf::ui {
 
@@ -42,12 +44,11 @@ struct TextRender : Render<TextRender> {
     Settings settings{};
 
 private:
-
     usize buffer_cursor{0};
     GlyphUnit cursor_row{0}, cursor_col{0};
     bool contrast_mode{false};
 
-    [[nodiscard]] usize widgetsAvailableImpl() const {
+    kf_nodiscard usize widgetsAvailableImpl() const {
         return settings.rows_total - cursor_row;
     }
 
@@ -131,7 +132,7 @@ private:
 
     // help methods...
 
-    [[nodiscard]] usize print(const char *str) {
+    kf_nodiscard usize print(const char *str) {
         if (nullptr == str) {
             str = "nullptr";
         }
@@ -146,7 +147,7 @@ private:
         return written;
     }
 
-    [[nodiscard]] usize print(i32 integer) {
+    kf_nodiscard usize print(i32 integer) {
         if (integer == 0) {
             return write('0');
         }
@@ -176,7 +177,7 @@ private:
         return written;
     }
 
-    [[nodiscard]] usize print(f64 real, u8 rounding) {
+    kf_nodiscard usize print(f64 real, u8 rounding) {
         if (isnan(real)) {
             return print("nan");
         }
@@ -212,7 +213,7 @@ private:
         return written;
     }
 
-    [[nodiscard]] usize write(u8 c) {
+    kf_nodiscard usize write(u8 c) {
         if (buffer_cursor >= settings.buffer.size()) {
             return 0;
         }

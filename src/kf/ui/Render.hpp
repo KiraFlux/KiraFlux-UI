@@ -1,6 +1,7 @@
 #pragma once
 
 #include <kf/aliases.hpp>
+#include <kf/attributes.hpp>
 
 /// @brief отдельное пространство имён для внешних компонентов UI
 namespace kf::ui {
@@ -24,7 +25,7 @@ template<typename Impl> struct Render {
     void widgetEnd() { impl().widgetEndImpl(); }
 
     /// @brief Количество виджетов, которые ещё возможно отобразить
-    [[nodiscard]] usize widgetsAvailable() { return impl().widgetsAvailableImpl(); }
+    kf_nodiscard usize widgetsAvailable() { return impl().widgetsAvailableImpl(); }
 
     // Значения
 
@@ -39,7 +40,6 @@ template<typename Impl> struct Render {
 
     /// @brief Отобразить вещественное число
     void number(f64 real, u8 rounding) { impl().numberImpl(real, rounding); }
-
 
     // Оформление
 
