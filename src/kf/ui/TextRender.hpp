@@ -1,8 +1,8 @@
 #pragma once
 
-#include <array>
-#include <cmath>
-#include <functional>
+#include <kf/array.hpp>
+#include <math.h> // NOLINT(*-deprecated-headers)
+#include <kf/fn.hpp>
 
 #include <kf/aliases.hpp>
 #include <kf/slice.hpp>
@@ -21,7 +21,7 @@ struct TextRender : Render<TextRender> {
 
     /// @brief Настройки рендера
     struct Settings {
-        using RenderHandler = std::function<void(const kf::slice<const u8> &)>;
+        using RenderHandler = kf::fn<void(const kf::slice<const u8> &)>;
 
         static constexpr auto rows_default{4};
         static constexpr auto cols_default{16};
@@ -64,7 +64,7 @@ private:
         cursor_col = 0;
         settings.buffer.data()[buffer_cursor - 1] = '\0';
 
-        if (nullptr != settings.on_render_finish) {
+        if (settings.on_render_finish) {
             settings.on_render_finish({settings.buffer.data(), buffer_cursor});
         }
     }
@@ -177,11 +177,11 @@ private:
     }
 
     [[nodiscard]] usize print(f64 real, u8 rounding) {
-        if (std::isnan(real)) {
+        if (isnan(real)) {
             return print("nan");
         }
 
-        if (std::isinf(real)) {
+        if (isinf(real)) {
             return print("inf");
         }
 

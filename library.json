@@ -32,6 +32,6 @@
     "include": "src/kf"
   },
   "dependencies": {
-    "KiraFlux-ToolBox": "https://github.com/KiraFlux/KiraFlux-ToolBox.git"
+
   }
 }

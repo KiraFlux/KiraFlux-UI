@@ -1,17 +1,18 @@
 #pragma once
 
-#include <array>
-#include <functional>
-#include <queue>
-#include <type_traits>
-#include <utility>
-#include <vector>
+#include <kf/algorithm.hpp>
+#include <kf/fn.hpp>
+#include <kf/type_traits.hpp>
+#include <kf/utility.hpp>
+
+#include <kf/array.hpp>
+#include <kf/queue.hpp>
+#include <kf/vector.hpp>
 
 #include <kf/aliases.hpp>
 #include <kf/tools/meta/Singleton.hpp>
 
 #include "kf/ui/Event.hpp"
-
 
 namespace kf {
 
@@ -96,12 +97,12 @@ template<typename R> struct UI final : tools::Singleton<UI<R>> {
         };
 
         /// @brief Виджеты данной страницы
-        std::vector<Widget *> widgets{}; // todo Widget refs
+        vector<Widget *> widgets{};// todo Widget refs
 
         /// @brief Заголовок страницы.
         const char *title;
 
-        /// @brief Курсор 
+        /// @brief Курсор
         /// @details Индекс активного виджета
         usize cursor{0};
 
@@ -132,8 +133,8 @@ template<typename R> struct UI final : tools::Singleton<UI<R>> {
             render.title(title);
 
             const auto available = render.widgetsAvailable();
-            const auto start = (totalWidgets() > available) ? std::min(cursor, totalWidgets() - available) : 0;
-            const auto end = std::min(start + available, totalWidgets());
+            const auto start = (totalWidgets() > available) ? min(cursor, totalWidgets() - available) : 0;
+            const auto end = min(start + available, totalWidgets());
 
             for (auto i = start; i < end; i += 1) {
                 render.widgetBegin(i);
@@ -185,15 +186,15 @@ template<typename R> struct UI final : tools::Singleton<UI<R>> {
         [[nodiscard]] bool moveCursor(isize delta) {
             const auto last_cursor = cursor;
             cursor += delta;
-            cursor = std::max(static_cast<isize>(cursor), 0);
-            cursor = std::min(cursor, cursorPositionMax());
+            cursor = max(static_cast<isize>(cursor), 0);
+            cursor = min(cursor, cursorPositionMax());
             return last_cursor != cursor;
         }
     };
 
 private:
     /// @brief Входящие события
-    std::queue<Event> events{};
+    queue<Event> events{};
 
     /// @brief Активная страница
     Page *active_page{nullptr};
@@ -243,7 +244,7 @@ public:
     struct Button final : Widget {
 
         /// @brief Обработчик клика
-        using ClickHandler = std::function<void()>;
+        using ClickHandler = fn<void()>;
 
     private:
         /// @brief Метка кнопки
@@ -256,11 +257,10 @@ public:
         explicit Button(
             Page &root,
             const char *label,
-            ClickHandler on_click
-        ) :
+            ClickHandler on_click) :
             Widget{root},
             label{label},
-            on_click{std::move(on_click)} {}
+            on_click{move(on_click)} {}
 
         bool onClick() override {
             if (on_click) {
@@ -281,7 +281,7 @@ public:
     struct CheckBox final : Widget {
 
         /// @brief Тип внешнего обработчика изменения
-        using ChangeHandler = std::function<void(bool)>;
+        using ChangeHandler = fn<void(bool)>;
 
     private:
         /// @brief Обработчик изменения
@@ -293,18 +293,16 @@ public:
     public:
         explicit CheckBox(
             ChangeHandler change_handler,
-            bool default_state = false
-        ) :
-            on_change{std::move(change_handler)},
+            bool default_state = false) :
+            on_change{move(change_handler)},
             state{default_state} {}
 
         explicit CheckBox(
             Page &root,
             ChangeHandler change_handler,
-            bool default_state = false
-        ) :
+            bool default_state = false) :
             Widget{root},
-            on_change{std::move(change_handler)},
+            on_change{move(change_handler)},
             state{default_state} {}
 
         bool onClick() override {
@@ -351,7 +349,7 @@ public:
         };
 
         /// @brief Контейнер элементов
-        using Container = std::array<Item, N>;
+        using Container = kf::array<Item, N>;
 
     private:
         /// @brief Элементы выбора
@@ -366,18 +364,16 @@ public:
     public:
         explicit ComboBox(
             T &val,
-            Container items
-        ) :
-            items{std::move(items)},
+            Container items) :
+            items{move(items)},
             value{val} {}
 
         explicit ComboBox(
             Page &root,
             T &val,
-            Container items
-        ) :
+            Container items) :
             Widget{root},
-            items{std::move(items)},
+            items{move(items)},
             value{val} {}
 
         bool onChange(int direction) override {
@@ -414,18 +410,16 @@ public:
     public:
         explicit Display(
             Page &root,
-            const T &val
-        ) :
+            const T &val) :
             Widget{root},
             value{val} {}
 
         explicit Display(
-            const T &val
-        ) :
+            const T &val) :
             value{val} {}
 
         void doRender(RenderImpl &render) const override {
-            if constexpr (std::is_floating_point<T>::value) {
+            if constexpr (kf::is_floating_point<T>::value) {
                 render.number(value, 3);
             } else {
                 render.number(value);
@@ -436,7 +430,7 @@ public:
     /// @brief Добавляет метку к виджету
     /// @tparam W Тип реализации виджета, к которому будет добавлена метка
     template<typename W> struct Labeled final : Widget {
-        static_assert(std::is_base_of<Widget, W>::value, "W must be a Widget Subclass");
+        static_assert(kf::is_base_of<Widget, W>::value, "W must be a Widget Subclass");
 
         /// @brief Реализация виджета, к которому была добавлена метка
         using Impl = W;
@@ -452,11 +446,10 @@ public:
         explicit Labeled(
             Page &root,
             const char *label,
-            W impl
-        ) :
+            W impl) :
             Widget{root},
             label{label},
-            impl{std::move(impl)} {}
+            impl{move(impl)} {}
 
         bool onClick() override { return impl.onClick(); }
 
@@ -469,9 +462,9 @@ public:
         }
     };
 
-/// @brief Спин-бокс - Виджет для изменения арифметического значения в указанном режиме
+    /// @brief Спин-бокс - Виджет для изменения арифметического значения в указанном режиме
     template<typename T> struct SpinBox final : Widget {
-        static_assert(std::is_arithmetic<T>::value, "T must be arithmetic");
+        static_assert(kf::is_arithmetic<T>::value, "T must be arithmetic");
 
         /// @brief Тип скалярной величины виджета
         using Value = T;
@@ -505,8 +498,7 @@ public:
         explicit SpinBox(
             T &value,
             T step = static_cast<T>(1),
-            Mode mode = Mode::Arithmetic
-        ) :
+            Mode mode = Mode::Arithmetic) :
             mode{mode},
             value{value},
             step{step} {}
@@ -515,8 +507,7 @@ public:
             Page &root,
             T &value,
             T step = static_cast<T>(1),
-            Mode mode = Mode::Arithmetic
-        ) :
+            Mode mode = Mode::Arithmetic) :
             Widget{root},
             mode{mode},
             value{value},
@@ -551,7 +542,7 @@ public:
 
     private:
         void displayNumber(RenderImpl &render, const T &number) const {
-            if constexpr (std::is_floating_point<T>::value) {
+            if constexpr (kf::is_floating_point<T>::value) {
                 render.number(static_cast<float>(number), 4);
             } else {
                 render.number(number);
@@ -588,13 +579,12 @@ public:
                 step /= step_multiplier;
 
                 // Защита от слишком маленьких шагов
-                if constexpr (std::is_integral<T>::value) {
+                if constexpr (kf::is_integral<T>::value) {
                     if (step < 1) { step = 1; }
                 }
             }
         }
     };
-
 };
 
 }// namespace kf
