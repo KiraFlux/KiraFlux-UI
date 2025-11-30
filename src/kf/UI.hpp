@@ -420,8 +420,8 @@ public:
             value{val} {}
 
         void doRender(RenderImpl &render) const override {
-            if constexpr (kf::is_floating_point<T>::value) {
-                render.number(value, 3);
+            kf_if_constexpr (kf::is_floating_point<T>::value) {
+                render.number(static_cast<float>(value), 3);
             } else {
                 render.number(value);
             }
@@ -543,7 +543,7 @@ public:
 
     private:
         void displayNumber(RenderImpl &render, const T &number) const {
-            if constexpr (kf::is_floating_point<T>::value) {
+            kf_if_constexpr (kf::is_floating_point<T>::value) {
                 render.number(static_cast<float>(number), 4);
             } else {
                 render.number(number);
@@ -580,7 +580,7 @@ public:
                 step /= step_multiplier;
 
                 // Защита от слишком маленьких шагов
-                if constexpr (kf::is_integral<T>::value) {
+                kf_if_constexpr (kf::is_integral<T>::value) {
                     if (step < 1) { step = 1; }
                 }
             }
