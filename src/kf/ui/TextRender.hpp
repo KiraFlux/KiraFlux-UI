@@ -7,12 +7,12 @@
 #include <kf/array.hpp>
 #include <kf/attributes.hpp>
 #include <kf/fn.hpp>
-
 #include <kf/slice.hpp>
 
 #include "kf/ui/Render.hpp"
 
-namespace kf::ui {
+namespace kf {
+namespace ui {
 
 /// @brief Система отрисовки простым текстом
 struct TextRender : Render<TextRender> {
@@ -242,4 +242,5 @@ private:
     }
 };
 
-}// namespace kf::ui
+}// namespace ui
+}// namespace kf

@@ -3,8 +3,10 @@
 #include <kf/aliases.hpp>
 #include <kf/attributes.hpp>
 
+namespace kf {
+
 /// @brief отдельное пространство имён для внешних компонентов UI
-namespace kf::ui {
+namespace ui {
 
 /// @brief Система рендера
 template<typename Impl> struct Render {
@@ -71,4 +73,5 @@ private:
     inline Impl &impl() { return *static_cast<Impl *>(this); }
 };
 
-}// namespace kf::ui
+}// namespace ui
+}// namespace kf

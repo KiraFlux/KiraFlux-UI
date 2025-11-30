@@ -3,7 +3,8 @@
 #include <kf/aliases.hpp>
 #include <kf/attributes.hpp>
 
-namespace kf::ui {
+namespace kf {
+namespace ui {
 
 /// @brief Входящее событие
 struct Event {
@@ -16,6 +17,7 @@ private:
 
     static constexpr unsigned type_bits = 3;
     static constexpr unsigned value_bits = event_bits_total - type_bits;
+    static constexpr unsigned sign_bit_mask = 1 << (value_bits - 1);
 
     static constexpr Storage value_mask = (1 << value_bits) - 1;
     static constexpr Storage type_mask = event_value_full & ~value_mask;
@@ -23,7 +25,6 @@ private:
     Storage storage;
 
 public:
-
     /// @brief Тип события
     enum class Type : Storage {
 #define enumerate(x) ((x) << value_bits)
@@ -63,9 +64,7 @@ public:
         storage{
             static_cast<Storage>(
                 (static_cast<Storage>(type) & type_mask) |
-                (static_cast<Storage>(value) & value_mask)
-            )
-        } {}
+                (static_cast<Storage>(value) & value_mask))} {}
 
     /// @brief Тип события
     kf_nodiscard constexpr Type type() const {
@@ -73,14 +72,9 @@ public:
     }
 
     /// @brief Значение события
-    kf_nodiscard constexpr Value value() const {
-        constexpr auto sign_bit_mask = 1 << (value_bits - 1);
-
+    kf_nodiscard Value value() const {
         const auto result = static_cast<Value>(storage & value_mask);
-
-        return (result & sign_bit_mask) ?
-               static_cast<Value>(result | ~value_mask) :
-               result;
+        return (result & sign_bit_mask) ? static_cast<Value>(result | ~value_mask) : result;
     }
 
     // Готовые экземпляры
@@ -88,7 +82,7 @@ public:
     static constexpr Event None() { return Event{Type::None}; }
 
     static constexpr Event Update() { return Event{Type::Update}; }
-    
+
     static constexpr Event PageCursorMove(Value offset) { return Event{Type::PageCursorMove, offset}; }
 
     static constexpr Event WidgetClick() { return Event{Type::WidgetClick}; }
@@ -96,5 +90,5 @@ public:
     static constexpr Event WidgetValueChange(Value delta) { return Event{Type::WidgetValueChange, delta}; }
 };
 
-}
-
+}// namespace ui
+}// namespace kf
