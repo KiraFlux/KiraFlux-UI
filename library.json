@@ -1,6 +1,6 @@
 {
   "name": "KiraFlux-UI",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "User Interface for embedded C++",
   "keywords": [
     "ui",
@@ -32,6 +32,6 @@
     "include": "src/kf"
   },
   "dependencies": {
-
+    "KiraFlux-ToolBox": "https://github.com/KiraFlux/KiraFlux-ToolBox.git"
   }
 }
